@@ -1,0 +1,23 @@
+[package]
+name = "woocommerce-client"
+version = "0.4.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+
+[dependencies]
+service-sdk = { tag = "0.2.5", git = "https://github.com/MyJetTools/service-sdk.git", features = [
+    "macros",
+] }
+
+base64 = "0.21.5"
+
+tokio = { version = "*", features = ["full"] } 
+reqwest = { version = "*", features = ["json"] }
+serde = { version = "*", features = ["derive"] }
+serde_repr = "*"
+serde_json = "*"
+async-trait = "*"
