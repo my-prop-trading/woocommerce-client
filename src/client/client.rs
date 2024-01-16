@@ -38,7 +38,7 @@ impl WooHttpClient {
         }
     }
 
-    pub async fn create_order(&self, order: &CreateOrder) -> Result<i32, reqwest::Error> {
+    pub async fn create_order(&self, order: &CreateOrder) -> Result<Order, reqwest::Error> {
         let url = format!("{}/wc/v3/orders", self.base_url);
         let res = self.client.post(&url).json(order).send().await;
         match res {
@@ -53,7 +53,7 @@ impl WooHttpClient {
 
                 let order: Result<Order, reqwest::Error> = res.json().await;
 
-                return Ok(order?.id);
+                return Ok(order?);
             }
             Err(e) => {
                 if self.debug {
@@ -171,7 +171,7 @@ mod tests {
             .unwrap();
 
         println!("Response: {:?}", resp);
-        let order = client.get_order(resp).await.unwrap();
+        let order = client.get_order(resp.id).await.unwrap();
         println!("Order: {:?}", order);
     }
 }
