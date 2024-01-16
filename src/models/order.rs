@@ -1,3 +1,5 @@
+use std::default;
+
 use serde::{Deserialize, Serialize};
 
 use crate::Links;
@@ -20,7 +22,7 @@ pub struct CreateOrder {
 pub struct Order {
     pub id: i32,
     pub parent_id: i32,
-    pub status: String,
+    pub status: OrderStatus,
     pub currency: String,
     pub version: String,
     pub prices_include_tax: bool,
@@ -180,4 +182,25 @@ pub struct GiftCard {
     pub id: i32,
     pub amount: String,
     pub balance: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+pub enum OrderStatus {
+    #[default]
+    #[serde(rename = "pending")]
+    Pending,
+    #[serde(rename = "processing")]
+    Processing,
+    #[serde(rename = "on-hold")]
+    OnHold,
+    #[serde(rename = "completed")]
+    Completed,
+    #[serde(rename = "cancelled")]
+    Cancelled,
+    #[serde(rename = "refunded")]
+    Refunded,
+    #[serde(rename = "failed")]
+    Failed,
+    #[serde(rename = "trash")]
+    Trash,
 }
