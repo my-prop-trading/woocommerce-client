@@ -1,5 +1,3 @@
-use std::default;
-
 use serde::{Deserialize, Serialize};
 
 use crate::Links;
@@ -203,4 +201,6 @@ pub enum OrderStatus {
     Failed,
     #[serde(rename = "trash")]
     Trash,
+    #[serde(rename = "checkout-draft")]
+    CheckoutDraft
 }
