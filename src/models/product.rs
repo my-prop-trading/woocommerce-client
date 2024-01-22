@@ -2,6 +2,22 @@ use serde::{Deserialize, Serialize};
 
 use crate::{MetaData, Links};
 
+#[derive(Serialize, Deserialize)]
+pub struct CreateProduct {
+   pub name: String,
+   #[serde(rename = "type")]
+   pub product_type: String,
+   pub regular_price: String,
+   pub price: String,
+   #[serde(rename = "virtual")]
+   pub virtual_type: bool,
+   pub description: String,
+   pub short_description: String,
+   pub categories: Vec<Category>,
+   pub images: Vec<Image>,
+   pub meta_data: Vec<MetaData>,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Product {
     pub id: i32,
@@ -13,7 +29,7 @@ pub struct Product {
     pub date_modified: String,
     pub date_modified_gmt: String,
     #[serde(rename = "type")]
-    pub type_: String,
+    pub product_type: String,
     pub status: String,
     pub featured: bool,
     pub catalog_visibility: String,
@@ -22,16 +38,25 @@ pub struct Product {
     pub sku: String,
     pub price: String,
     pub regular_price: String,
+    
+    #[serde(default)]
     pub sale_price: String,
+    #[serde(default)]
     pub date_on_sale_from: Option<String>,
+    #[serde(default)]
     pub date_on_sale_from_gmt: Option<String>,
+    #[serde(default)]
     pub date_on_sale_to: Option<String>,
+    #[serde(default)]
     pub date_on_sale_to_gmt: Option<String>,
+     
     pub price_html: String,
     pub on_sale: bool,
     pub purchasable: bool,
     pub total_sales: i32,
-    pub virtual_: bool,
+    #[serde(rename = "virtual")]
+    pub virtual_type: bool,
+    
     pub downloadable: bool,
     pub downloads: Vec<Download>,
     pub download_limit: i32,
@@ -41,6 +66,7 @@ pub struct Product {
     pub tax_status: String,
     pub tax_class: String,
     pub manage_stock: bool,
+    #[serde(default)]
     pub stock_quantity: Option<i32>,
     pub stock_status: String,
     pub backorders: String,

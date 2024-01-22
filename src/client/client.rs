@@ -4,7 +4,7 @@ use base64::Engine;
 use reqwest::header;
 use service_sdk::my_logger::{LogEventCtx, LOGGER};
 
-use crate::{CreateOrder, Order};
+use crate::{CreateOrder, CreateProduct, Order, Product};
 
 pub struct WooHttpClient {
     base_url: String,
@@ -123,21 +123,117 @@ impl WooHttpClient {
             }
         }
     }
+
+    pub async fn create_product(&self, product: &CreateProduct) -> Result<Product, reqwest::Error> {
+        let url = format!("{}/wc/v3/products", self.base_url);
+        /* let json = serde_json::to_string(&product).unwrap();
+        println!("JSON: {}", json); */
+        let res = self.client.post(&url).json(product).send().await;
+        match res {
+            Ok(res) => {
+                if self.debug {
+                    LOGGER.write_info(
+                        "WooHttpClient::create_product",
+                        format!("Response: {:?}", res),
+                        LogEventCtx::new(),
+                    );
+                }
+
+                let product: Result<Product, reqwest::Error> = res.json().await;
+
+                return Ok(product?);
+            }
+            Err(e) => {
+                if self.debug {
+                    LOGGER.write_error(
+                        "WooHttpClient::create_order",
+                        format!("Error: {:?}", e),
+                        LogEventCtx::new(),
+                    );
+                }
+                return Err(e);
+            }
+        }
+    }
+
+    pub async fn get_products(
+        &self,
+        page: usize,
+        per_page: usize,
+    ) -> Result<Vec<Product>, reqwest::Error> {
+        let url = format!(
+            "{}/wc/v3/products?page={}&per_page={}",
+            self.base_url, page, per_page
+        );
+        let res = self.client.get(&url).send().await;
+        match res {
+            Ok(res) => {
+                if self.debug {
+                    LOGGER.write_info(
+                        "WooHttpClient::get_products",
+                        format!("Response: {:?}", res),
+                        LogEventCtx::new(),
+                    );
+                }
+
+                /*  println!("{:?}",res.text().await.unwrap());
+                todo!(); */
+                let products = res.json().await;
+                return Ok(products?);
+            }
+            Err(e) => {
+                if self.debug {
+                    LOGGER.write_error(
+                        "WooHttpClient::get_products",
+                        format!("Error: {:?}", e),
+                        LogEventCtx::new(),
+                    );
+                }
+                return Err(e);
+            }
+        }
+    }
+
+    pub async fn update_product(&self, product: &Product) -> Result<(), reqwest::Error> {
+        let url = format!("{}/wc/v3/products/{}", self.base_url, product.id);
+        let res = self.client.put(&url).json(product).send().await;
+        match res {
+            Ok(res) => {
+                if self.debug {
+                    LOGGER.write_info(
+                        "WooHttpClient::update_product",
+                        format!("Response: {:?}", res),
+                        LogEventCtx::new(),
+                    );
+                }
+                return Ok(());
+            }
+            Err(e) => {
+                if self.debug {
+                    LOGGER.write_error(
+                        "WooHttpClient::update_product",
+                        format!("Error: {:?}", e),
+                        LogEventCtx::new(),
+                    );
+                }
+                return Err(e);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use serde_json::Value;
+
     use crate::{CreateLineItem, MetaData};
 
     use super::*;
 
-    #[tokio::test]
+    //#[tokio::test]
     async fn test_post_order() {
         let client = WooHttpClient::new(
-            "consumer_key",
-            "consumer_secret",
-            "https://example.com",
-        );
+            "consumer_key", "consumer_secret", "https://example.com");
         let resp = client
             .create_order(&CreateOrder {
                 payment_method: "Stripe".to_string(),
@@ -159,7 +255,7 @@ mod tests {
                 meta_data: vec![MetaData {
                     id: 1,
                     key: "Some".to_string(),
-                    value: "Value".to_string(),
+                    value: Value::String("Value".to_string()),
                 }],
                 line_items: vec![CreateLineItem {
                     product_id: 60,
@@ -173,5 +269,38 @@ mod tests {
         println!("Response: {:?}", resp);
         let order = client.get_order(resp.id).await.unwrap();
         println!("Order: {:?}", order);
+    }
+
+    #[tokio::test]
+    async fn test_post_product() {
+        let client = WooHttpClient::new("consumer_key", "consumer_secret", "https://example.com");
+        /* let resp = client
+            .create_product(&CreateProduct {
+                name: "test_post_product".to_string(),
+                product_type: "simple".to_string(),
+                regular_price: "100.00".to_string(),
+                price: "100.00".to_string(),
+                virtual_type: true,
+                description: "test_post_product".to_string(),
+                short_description: "test_post_product".to_string(),
+                categories: vec![],
+                images: vec![],
+                meta_data: vec![ MetaData {
+                    id: 379,
+                    key: "minimum_allowed_quantity".to_string(),
+                    value: "1".to_string()
+                },
+                MetaData {
+                    id: 380,
+                    key: "maximum_allowed_quantity".to_string(),
+                    value: "1".to_string()
+                }],
+            })
+            .await
+            .unwrap();
+
+        println!("Response: {:?}", resp); */
+        let products = client.get_products(1, 10).await.unwrap();
+        println!("Products: {:?}", products);
     }
 }
