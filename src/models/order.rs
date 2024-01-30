@@ -63,7 +63,8 @@ pub struct Order {
     pub date_modified_gmt: String,
     pub date_completed_gmt: Option<String>,
     pub date_paid_gmt: Option<String>,
-    pub gift_cards: Vec<GiftCard>,
+    #[serde(default)]
+    pub gift_cards: Option<Vec<GiftCard>>,
     pub currency_symbol: String,
     pub _links: Links,
 }

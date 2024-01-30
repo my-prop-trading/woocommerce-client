@@ -230,10 +230,13 @@ mod tests {
 
     use super::*;
 
-    //#[tokio::test]
+    #[tokio::test]
     async fn test_post_order() {
         let client = WooHttpClient::new(
-            "consumer_key", "consumer_secret", "https://example.com");
+            "ck_*",
+            "cs_*",
+            "https://checkout*/wp-json",
+        );
         let resp = client
             .create_order(&CreateOrder {
                 payment_method: "Stripe".to_string(),
@@ -258,7 +261,8 @@ mod tests {
                     value: Value::String("Value".to_string()),
                 }],
                 line_items: vec![CreateLineItem {
-                    product_id: 60,
+                    //product_id: 60,
+                    product_id: 19,
                     quantity: 1,
                 }],
                 customer_id: 0,
@@ -273,8 +277,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_post_product() {
-        let client = WooHttpClient::new("consumer_key", "consumer_secret", "https://example.com");
-        /* let resp = client
+        let client = WooHttpClient::new(
+            "ck_*",
+            "cs_*",
+            "https://checkout*/wp-json",
+        );
+        let resp = client
             .create_product(&CreateProduct {
                 name: "test_post_product".to_string(),
                 product_type: "simple".to_string(),
@@ -288,19 +296,24 @@ mod tests {
                 meta_data: vec![ MetaData {
                     id: 379,
                     key: "minimum_allowed_quantity".to_string(),
-                    value: "1".to_string()
+                    value: Value::String("1".to_string()),
                 },
                 MetaData {
                     id: 380,
                     key: "maximum_allowed_quantity".to_string(),
-                    value: "1".to_string()
+                    value: Value::String("1".to_string())
                 }],
             })
             .await
             .unwrap();
 
-        println!("Response: {:?}", resp); */
+        println!("Response: {:?}", resp);
         let products = client.get_products(1, 10).await.unwrap();
         println!("Products: {:?}", products);
+        for mut item in products {
+            item.name = format!("{}-updated", item.name);
+            println!("Product: {:?}", item);
+            client.update_product(&item).await.unwrap();
+        }
     }
 }
