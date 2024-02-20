@@ -124,8 +124,8 @@ mod tests {
     use super::*;
 
     // This test requires a valid consumer key and secret
-    #[tokio::test]
-    async fn test_post_order() {
+    //#[tokio::test]
+    async fn _test_post_order() {
         let client = WooHttpClient::new("ck_*", "cs_*", "https://checkout*/wp-json");
         let resp = client
             .create_order(&CreateOrder {

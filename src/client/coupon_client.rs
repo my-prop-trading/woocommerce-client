@@ -12,9 +12,9 @@ pub trait CouponClient {
         per_page: usize,
     ) -> Result<Vec<Coupon>, WooCommerceHttpError>;
 
-    async fn update_coupon(&self, coupon: &Coupon) -> Result<(), WooCommerceHttpError>;
+    async fn update_coupon(&self, coupon: &Coupon) -> Result<Coupon, WooCommerceHttpError>;
 
-    async fn delete_coupon(&self, id: i32) -> Result<(), WooCommerceHttpError>;
+    async fn delete_coupon(&self, id: i32) -> Result<Coupon, WooCommerceHttpError>;
 
     async fn get_coupon(&self, id: i32) -> Result<Option<Coupon>, WooCommerceHttpError>;
 }
@@ -23,6 +23,7 @@ impl CouponClient for WooHttpClient {
     async fn create_coupon(&self, coupon: &CreateCoupon) -> Result<Coupon, WooCommerceHttpError> {
         let url = format!("{}/wc/v3/coupons", self.base_url);
         let res = self.client.post(&url).json(coupon).send().await;
+        println!("Response: {:?}", res);
         match res {
             Ok(res) => {
                 if self.debug {
@@ -96,7 +97,7 @@ impl CouponClient for WooHttpClient {
         }
     }
 
-    async fn update_coupon(&self, coupon: &Coupon) -> Result<(), WooCommerceHttpError> {
+    async fn update_coupon(&self, coupon: &Coupon) -> Result<Coupon, WooCommerceHttpError> {
         let url = format!("{}/wc/v3/coupons/{}", self.base_url, coupon.id);
         let res = self.client.put(&url).json(coupon).send().await;
         match res {
@@ -109,12 +110,14 @@ impl CouponClient for WooHttpClient {
                     );
                 }
 
-                let _ = match self.check_for_failed_status_code(res).await {
+                let res = match self.check_for_failed_status_code(res).await {
                     crate::ResponseStatusCheck::Ok(res) => res,
                     crate::ResponseStatusCheck::Err(err) => return err,
                 };
 
-                return Ok(());
+                let coupon = res.json().await;
+
+                return Ok(coupon?);
             }
             Err(e) => {
                 if self.debug {
@@ -129,7 +132,7 @@ impl CouponClient for WooHttpClient {
         }
     }
 
-    async fn delete_coupon(&self, id: i32) -> Result<(), WooCommerceHttpError> {
+    async fn delete_coupon(&self, id: i32) -> Result<Coupon, WooCommerceHttpError> {
         let url = format!("{}/wc/v3/coupons/{}?force=true", self.base_url, id);
         let res = self.client.delete(&url).send().await;
         match res {
@@ -142,12 +145,14 @@ impl CouponClient for WooHttpClient {
                     );
                 }
 
-                let _ = match self.check_for_failed_status_code(res).await {
+                let res = match self.check_for_failed_status_code(res).await {
                     crate::ResponseStatusCheck::Ok(res) => res,
                     crate::ResponseStatusCheck::Err(err) => return err,
                 };
 
-                return Ok(());
+                let coupon = res.json().await;
+
+                return Ok(coupon?);
             }
             Err(e) => {
                 if self.debug {
@@ -217,7 +222,7 @@ mod tests {
         let resp = client
             .create_coupon(&CreateCoupon {
                 amount: "10.0".to_string(),
-                code: "test12".to_string(),
+                code: "test1234".to_string(),
                 description: "test1".to_string(),
                 discount_type: crate::DiscountType::Percent,
                 date_expires_gmt: Some(now.to_rfc3339()),
