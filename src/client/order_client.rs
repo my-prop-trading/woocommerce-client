@@ -17,9 +17,10 @@ pub trait OrderClient {
 impl OrderClient for WooHttpClient {
     async fn create_order(&self, order: &CreateOrder) -> Result<Order, WooCommerceHttpError> {
         let url = format!("{}/wc/v3/orders", self.base_url)
-            .with_header("Authorization", &self.auth_header);
-        let body = serde_json::to_string(&order).unwrap();
-        println!("Body: {}", body);
+            .with_header("Authorization", &self.auth_header)
+            .with_header("Content-Type", "application/json");
+        /* let body = serde_json::to_string(&order).unwrap();
+        println!("Body: {}", body); */
         let res = url.post_json(order).await;
         match res {
             Ok(mut res) => {
