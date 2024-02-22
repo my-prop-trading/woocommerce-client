@@ -2,11 +2,12 @@ use std::env;
 
 use base64::Engine;
 use reqwest::{header, Response};
-use service_sdk::my_logger::{LogEventCtx, LOGGER};
+use service_sdk::{flurl::FlUrlError, my_logger::{LogEventCtx, LOGGER}};
 
 #[derive(Debug)]
 pub enum WooCommerceHttpError {
     ReqwestError(reqwest::Error),
+    FlurlError(FlUrlError),
     SerdeError(serde_json::Error),
     StringError(String),
 }
@@ -21,6 +22,7 @@ pub struct WooHttpClient {
     pub(crate) base_url: String,
     pub(crate) client: reqwest::Client,
     pub(crate) debug: bool,
+    pub(crate) auth_header: String,
 }
 
 impl WooHttpClient {
@@ -47,6 +49,7 @@ impl WooHttpClient {
             client,
             base_url: base_url.to_string(),
             debug,
+            auth_header,
         }
     }
 
@@ -93,6 +96,12 @@ impl WooHttpClient {
 impl From<reqwest::Error> for WooCommerceHttpError {
     fn from(err: reqwest::Error) -> Self {
         WooCommerceHttpError::ReqwestError(err)
+    }
+}
+
+impl From<FlUrlError> for WooCommerceHttpError {
+    fn from(err: FlUrlError) -> Self {
+        WooCommerceHttpError::FlurlError(err)
     }
 }
 
