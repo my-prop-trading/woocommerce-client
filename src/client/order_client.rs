@@ -124,13 +124,17 @@ mod tests {
     use super::*;
 
     // This test requires a valid consumer key and secret
-    //#[tokio::test]
-    async fn _test_post_order() {
-        let client = WooHttpClient::new("ck_*", "cs_*", "https://checkout*/wp-json");
+    #[tokio::test]
+    async fn test_post_order() {
+        let client = WooHttpClient::new(
+            std::env::var("WOO_CONSUMER_KEY").unwrap().as_str(),
+            std::env::var("WOO_CONSUMER_SECRET").unwrap().as_str(),
+            std::env::var("WOO_BASE_URL").unwrap().as_str(),
+        );
         let resp = client
             .create_order(&CreateOrder {
-                payment_method: "Stripe".to_string(),
-                payment_method_title: "Credit Card (Stripe)".to_string(),
+               /*  payment_method: "Stripe".to_string(),
+                payment_method_title: "Credit Card (Stripe)".to_string(), */
                 set_paid: false,
                 billing: crate::ContactDetails {
                     first_name: "John".to_string(),

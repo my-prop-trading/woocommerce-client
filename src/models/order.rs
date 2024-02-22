@@ -7,8 +7,8 @@ use super::common::MetaData;
 //This is enough for us to create an order
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateOrder {
-    pub payment_method: String,
-    pub payment_method_title: String,
+    /* pub payment_method: String,
+    pub payment_method_title: String, */
     pub set_paid: bool,
     pub billing: ContactDetails,
     pub meta_data: Vec<MetaData>,
