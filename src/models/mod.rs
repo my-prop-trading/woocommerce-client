@@ -1,4 +1,5 @@
 mod order;
+#[allow(ambiguous_glob_reexports)]
 pub use order::*;
 
 mod product;

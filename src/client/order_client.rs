@@ -1,7 +1,4 @@
-use service_sdk::{
-    flurl::{FlUrlError, IntoFlUrl},
-    my_logger::{LogEventCtx, LOGGER},
-};
+use service_sdk::my_logger::{LogEventCtx, LOGGER};
 
 use crate::{CreateOrder, Order, WooCommerceHttpError, WooHttpClient};
 
@@ -16,31 +13,24 @@ pub trait OrderClient {
 
 impl OrderClient for WooHttpClient {
     async fn create_order(&self, order: &CreateOrder) -> Result<Order, WooCommerceHttpError> {
-        let url = format!("{}/wc/v3/orders", self.base_url)
-            .with_header("Authorization", &self.auth_header)
-            .with_header("Content-Type", "application/json");
-        /* let body = serde_json::to_string(&order).unwrap();
-        println!("Body: {}", body); */
-        let res = url.post_json(order).await;
+        let url = format!("{}/wc/v3/orders", self.base_url);
+        let res = self.client.post(&url).json(order).send().await;
         match res {
-            Ok(mut res) => {
+            Ok(res) => {
                 if self.debug {
                     LOGGER.write_info(
                         "WooHttpClient::create_order",
-                        format!("Response: {:?}", res.body_as_str().await),
+                        format!("Response: {:?}", res),
                         LogEventCtx::new(),
                     );
                 }
 
-                if res.get_status_code() > 204 {
-                    return Err(WooCommerceHttpError::StringError(format!(
-                        "Unsuccessful HTTP response: {} - {:?}",
-                        res.get_status_code(),
-                        res.body_as_str().await
-                    )));
-                }
+                let res = match self.check_for_failed_status_code(res).await {
+                    crate::ResponseStatusCheck::Ok(res) => res,
+                    crate::ResponseStatusCheck::Err(err) => return err,
+                };
 
-                let order: Result<Order, FlUrlError> = res.get_json().await;
+                let order: Result<Order, reqwest::Error> = res.json().await;
 
                 return Ok(order?);
             }
@@ -91,28 +81,24 @@ impl OrderClient for WooHttpClient {
     }
 
     async fn get_order(&self, order_id: i32) -> Result<Order, WooCommerceHttpError> {
-        let url = format!("{}/wc/v3/orders/{}", self.base_url, order_id)
-                .with_header("Authorization", &self.auth_header);;
-        let res = url.get().await;
+        let url = format!("{}/wc/v3/orders/{}", self.base_url, order_id);
+        let res = self.client.get(&url).send().await;
         match res {
-            Ok(mut res) => {
+            Ok(res) => {
                 if self.debug {
                     LOGGER.write_info(
                         "WooHttpClient::create_order",
-                        format!("Response: {:?}", res.body_as_str().await),
+                        format!("Response: {:?}", res),
                         LogEventCtx::new(),
                     );
                 }
 
-                if res.get_status_code() > 204 {
-                    return Err(WooCommerceHttpError::StringError(format!(
-                        "Unsuccessful HTTP response: {} - {:?}",
-                        res.get_status_code(),
-                        res.body_as_str().await
-                    )));
-                }
+                let res = match self.check_for_failed_status_code(res).await {
+                    crate::ResponseStatusCheck::Ok(res) => res,
+                    crate::ResponseStatusCheck::Err(err) => return err,
+                };
 
-                let order = res.get_json().await;
+                let order = res.json().await;
                 return Ok(order?);
             }
             Err(e) => {
@@ -158,7 +144,7 @@ mod tests {
                     address_1: "123 Main St".to_string(),
                     address_2: "".to_string(),
                     city: "New York".to_string(),
-                    state: "NY".to_string(),
+                    state: "".to_string(),
                     postcode: "10001".to_string(),
                     country: "US".to_string(),
                     email: "john.doe@example.com".to_string(),

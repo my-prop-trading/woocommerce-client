@@ -18,6 +18,7 @@ pub enum ResponseStatusCheck<T> {
     Err(Result<T, WooCommerceHttpError>),
 }
 
+#[allow(dead_code)]
 pub struct WooHttpClient {
     pub(crate) base_url: String,
     pub(crate) client: reqwest::Client,
