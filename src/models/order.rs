@@ -14,6 +14,7 @@ pub struct CreateOrder {
     pub meta_data: Vec<MetaData>,
     pub line_items: Vec<CreateLineItem>,
     pub customer_id: i32,
+    pub coupon_lines: Vec<CouponLineCreate>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -165,6 +166,11 @@ pub struct CouponLine {
     pub code: String,
     pub discount: String,
     pub discount_tax: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CouponLineCreate {
+    pub code: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

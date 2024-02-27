@@ -168,6 +168,7 @@ mod tests {
                     quantity: 1,
                 }],
                 customer_id: 0,
+                coupon_lines: vec![],
             })
             .await
             .unwrap();
