@@ -58,10 +58,10 @@ pub struct Coupon {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub enum DiscountType {
     #[default]
-    #[serde(rename = "fixed-cart")]
+    #[serde(rename = "fixed_cart")]
     FixedCart,
     #[serde(rename = "percent")]
     Percent,
-    #[serde(rename = "fixed-product")]
+    #[serde(rename = "fixed_product")]
     FixedProduct,
 }
