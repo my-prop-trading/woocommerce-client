@@ -189,7 +189,7 @@ pub struct GiftCard {
     pub balance: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub enum OrderStatus {
     #[default]
     #[serde(rename = "pending")]

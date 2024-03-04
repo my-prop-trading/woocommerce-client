@@ -6,7 +6,7 @@ use crate::{CreateOrder, Order, WooCommerceHttpError, WooHttpClient};
 pub trait OrderClient {
     async fn create_order(&self, order: &CreateOrder) -> Result<Order, WooCommerceHttpError>;
 
-    async fn update_order(&self, order: &Order) -> Result<(), WooCommerceHttpError>;
+    async fn update_order(&self, order: &Order) -> Result<Order, WooCommerceHttpError>;
 
     async fn get_order(&self, order_id: i32) -> Result<Order, WooCommerceHttpError>;
 }
@@ -47,7 +47,7 @@ impl OrderClient for WooHttpClient {
         }
     }
 
-    async fn update_order(&self, order: &Order) -> Result<(), WooCommerceHttpError> {
+    async fn update_order(&self, order: &Order) -> Result<Order, WooCommerceHttpError> {
         let url = format!("{}/wc/v3/orders/{}", self.base_url, order.id);
         let res = self.client.put(&url).json(order).send().await;
         match res {
@@ -60,12 +60,14 @@ impl OrderClient for WooHttpClient {
                     );
                 }
 
-                let _ = match self.check_for_failed_status_code(res).await {
+                let res = match self.check_for_failed_status_code(res).await {
                     crate::ResponseStatusCheck::Ok(res) => res,
                     crate::ResponseStatusCheck::Err(err) => return err,
                 };
 
-                return Ok(());
+                let order: Result<Order, reqwest::Error> = res.json().await;
+
+                return Ok(order?);
             }
             Err(e) => {
                 if self.debug {
