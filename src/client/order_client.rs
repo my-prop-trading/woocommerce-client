@@ -8,7 +8,7 @@ pub trait OrderClient {
 
     async fn update_order(&self, order: &Order) -> Result<Order, WooCommerceHttpError>;
 
-    async fn get_order(&self, order_id: i32) -> Result<Order, WooCommerceHttpError>;
+    async fn get_order(&self, order_id: i32) -> Result<Option<Order>, WooCommerceHttpError>;
 }
 
 impl OrderClient for WooHttpClient {
@@ -82,7 +82,7 @@ impl OrderClient for WooHttpClient {
         }
     }
 
-    async fn get_order(&self, order_id: i32) -> Result<Order, WooCommerceHttpError> {
+    async fn get_order(&self, order_id: i32) -> Result<Option<Order>, WooCommerceHttpError> {
         let url = format!("{}/wc/v3/orders/{}", self.base_url, order_id);
         let res = self.client.get(&url).send().await;
         match res {
