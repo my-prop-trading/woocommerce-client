@@ -2,14 +2,27 @@ use std::env;
 
 use base64::Engine;
 use reqwest::{header, Response};
-use service_sdk::{flurl::FlUrlError, my_logger::{LogEventCtx, LOGGER}};
+use serde::{Deserialize, Serialize};
+use service_sdk::my_logger::{LogEventCtx, LOGGER};
 
 #[derive(Debug)]
 pub enum WooCommerceHttpError {
-    ReqwestError(reqwest::Error),
-    FlurlError(FlUrlError),
+    //ReqwestError(reqwest::Error),
+    //FlurlError(FlUrlError),
     SerdeError(serde_json::Error),
-    StringError(String),
+    ErrorResponse(ErrorResponse),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ErrorResponse {
+    pub code: String,
+    pub message: String,
+    pub data: ErrorData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ErrorData {
+    pub status: i32,
 }
 
 #[derive(Debug)]
@@ -86,8 +99,12 @@ impl WooHttpClient {
                 }
             }
 
+            let parsed_data: Result<ErrorResponse, serde_json::Error> = serde_json::from_str(&err_detail_message);
             // Return a generic error or customize it based on the status code
-            return ResponseStatusCheck::Err(Err(WooCommerceHttpError::StringError(err_detail_message)));
+            return match parsed_data {
+                Ok(res) => ResponseStatusCheck::Err(Err(WooCommerceHttpError::ErrorResponse(res))),
+                Err(err) => ResponseStatusCheck::Err(Err(WooCommerceHttpError::SerdeError(err))),
+            };
         }
 
         return ResponseStatusCheck::Ok(res);
@@ -96,15 +113,21 @@ impl WooHttpClient {
 
 impl From<reqwest::Error> for WooCommerceHttpError {
     fn from(err: reqwest::Error) -> Self {
-        WooCommerceHttpError::ReqwestError(err)
+        let message = format!("ReqwestError: {}", err);
+        let error_response = ErrorResponse {
+            code: "reqwest_error".to_string(),
+            message,
+            data: ErrorData { status: err.status().unwrap().as_u16() as i32},
+        };
+        WooCommerceHttpError::ErrorResponse(error_response)
     }
 }
 
-impl From<FlUrlError> for WooCommerceHttpError {
+/* impl From<FlUrlError> for WooCommerceHttpError {
     fn from(err: FlUrlError) -> Self {
         WooCommerceHttpError::FlurlError(err)
     }
-}
+} */
 
 impl From<serde_json::Error> for WooCommerceHttpError {
     fn from(err: serde_json::Error) -> Self {
@@ -112,11 +135,11 @@ impl From<serde_json::Error> for WooCommerceHttpError {
     }
 }
 
-impl From<String> for WooCommerceHttpError {
+/* impl From<String> for WooCommerceHttpError {
     fn from(err: String) -> Self {
         WooCommerceHttpError::StringError(err)
     }
-}
+} */
 
 #[cfg(test)]
 mod tests {
