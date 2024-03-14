@@ -1,6 +1,6 @@
 use service_sdk::my_logger::{LogEventCtx, LOGGER};
 
-use crate::{Coupon, CreateCoupon, WooCommerceHttpError, WooHttpClient};
+use crate::{Coupon, CreateCoupon, UpdateCoupon, WooCommerceHttpError, WooHttpClient};
 
 #[allow(async_fn_in_trait)]
 pub trait CouponClient {
@@ -12,7 +12,7 @@ pub trait CouponClient {
         per_page: usize,
     ) -> Result<Vec<Coupon>, WooCommerceHttpError>;
 
-    async fn update_coupon(&self, coupon: &Coupon) -> Result<Coupon, WooCommerceHttpError>;
+    async fn update_coupon(&self, coupon: &UpdateCoupon) -> Result<Coupon, WooCommerceHttpError>;
 
     async fn delete_coupon(&self, id: i32) -> Result<Coupon, WooCommerceHttpError>;
 
@@ -97,7 +97,7 @@ impl CouponClient for WooHttpClient {
         }
     }
 
-    async fn update_coupon(&self, coupon: &Coupon) -> Result<Coupon, WooCommerceHttpError> {
+    async fn update_coupon(&self, coupon: &UpdateCoupon) -> Result<Coupon, WooCommerceHttpError> {
         let url = format!("{}/wc/v3/coupons/{}", self.base_url, coupon.id);
         let res = self.client.put(&url).json(coupon).send().await;
         match res {
@@ -240,7 +240,8 @@ mod tests {
         let coupons: Vec<Coupon> = client.get_coupons(1, 10).await.unwrap();
         println!("Coupons: {:?}", coupons);
 
-        for mut item in coupons {
+        for item in coupons {
+            let mut item: UpdateCoupon = item.into();
             item.description = format!("{}-updated", item.description);
             println!("Coupon: {:?}", item);
             client.update_coupon(&item).await.unwrap();
