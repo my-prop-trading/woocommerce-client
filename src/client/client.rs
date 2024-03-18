@@ -113,6 +113,17 @@ impl WooHttpClient {
 
 impl From<reqwest::Error> for WooCommerceHttpError {
     fn from(err: reqwest::Error) -> Self {
+
+        if let Ok(is_debug) = env::var("DEBUG") {
+            if is_debug == "1" {
+                LOGGER.write_error(
+                    "WooCommerceHttpError",
+                    format!("reqwest::Error: {:?}", err),
+                    LogEventCtx::new(),
+                );
+            }
+        }
+
         let message = format!("ReqwestError: {}", err);
         let error_response = ErrorResponse {
             code: "reqwest_error".to_string(),
