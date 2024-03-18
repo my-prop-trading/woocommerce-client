@@ -100,7 +100,7 @@ pub struct LineItem {
     pub total_tax: String,
     pub taxes: Vec<Tax>,
     pub meta_data: Vec<MetaData>,
-    pub sku: String,
+    pub sku: Option<String>,
     pub price: f64,
     pub image: Image,
     pub parent_name: Option<String>,
