@@ -166,6 +166,8 @@ pub struct CouponLine {
     pub code: String,
     pub discount: String,
     pub discount_tax: String,
+    pub discount_type: String,
+    pub nominal_amount: f64,                    
 }
 
 #[derive(Serialize, Deserialize, Debug)]
