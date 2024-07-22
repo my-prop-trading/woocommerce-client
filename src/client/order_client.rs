@@ -1,6 +1,6 @@
 use service_sdk::my_logger::{LogEventCtx, LOGGER};
 
-use crate::{CreateOrder, Order, WooCommerceHttpError, WooHttpClient};
+use crate::{CreateOrder, Order, WooCommerceHttpError, WooHttpClient, OrderStatus};
 
 #[allow(async_fn_in_trait)]
 pub trait OrderClient {
@@ -121,7 +121,7 @@ impl OrderClient for WooHttpClient {
 mod tests {
     use serde_json::Value;
 
-    use crate::{CreateLineItem, MetaData};
+    use crate::{CreateLineItem, MetaData, OrderStatus};
 
     use super::*;
 
@@ -153,7 +153,7 @@ mod tests {
                     phone: "(555) 555-5555".to_string(),
                 },
                 meta_data: vec![
-                    MetaData {
+                    /* MetaData {
                         id: 1,
                         key: "order_id".to_string(),
                         value: Value::String("123".to_string()),
@@ -162,11 +162,11 @@ mod tests {
                         id: 1,
                         key: "Some".to_string(),
                         value: Value::String("Value".to_string()),
-                    },
+                    }, */
                 ],
                 line_items: vec![CreateLineItem {
                     //product_id: 60,
-                    product_id: 19,
+                    product_id: 1915,
                     quantity: 1,
                 }],
                 customer_id: 0,
@@ -175,8 +175,11 @@ mod tests {
             .await
             .unwrap();
 
-        println!("Response: {:?}", resp);
-        let order = client.get_order(resp.id).await.unwrap();
-        println!("Order: {:?}", order);
+            println!("Response: {:?}", resp);
+            let mut order = client.get_order(resp.id).await.unwrap().unwrap();
+            println!("Order: {:?}", order);
+            order.status = OrderStatus::Cancelled;
+            let order = client.update_order(&order).await.unwrap();
+            println!("Order: {:?}", order);
     }
 }

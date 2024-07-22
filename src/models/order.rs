@@ -102,8 +102,8 @@ pub struct LineItem {
     pub meta_data: Vec<MetaData>,
     pub sku: Option<String>,
     pub price: f64,
-    pub image: Image,
-    pub parent_name: Option<String>,
+    /* pub image: Image,
+    pub parent_name: Option<String>, */
 }
 
 #[derive(Serialize, Deserialize, Debug)]
