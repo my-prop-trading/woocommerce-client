@@ -45,7 +45,7 @@ impl CouponClient for WooHttpClient {
             }
             Err(e) => {
                 if self.debug {
-                    LOGGER.write_error(
+                    LOGGER.write_warning(
                         "WooHttpClient::create_coupon",
                         format!("Error: {:?}", e),
                         LogEventCtx::new(),
@@ -80,7 +80,7 @@ impl CouponClient for WooHttpClient {
                     crate::ResponseStatusCheck::Ok(res) => res,
                     crate::ResponseStatusCheck::Err(err) => return err,
                 };
-                
+
                 let coupons = res.json().await;
                 return Ok(coupons?);
             }
@@ -207,7 +207,8 @@ impl CouponClient for WooHttpClient {
 mod tests {
     use std::time::Duration;
 
-    use service_sdk::rust_extensions::date_time::DateTimeAsMicroseconds;
+    use service_sdk::{flurl::my_tls::tokio_rustls::rustls::client::AlwaysResolvesClientRawPublicKeys, rust_extensions::date_time::DateTimeAsMicroseconds};
+    use tokio::time::sleep;
 
     use super::*;
 
@@ -217,7 +218,7 @@ mod tests {
             std::env::var("WOO_CONSUMER_KEY").unwrap().as_str(),
             std::env::var("WOO_CONSUMER_SECRET").unwrap().as_str(),
             std::env::var("WOO_BASE_URL").unwrap().as_str(),
-        ); 
+        );
         let now = DateTimeAsMicroseconds::now().add(Duration::from_secs(60 * 60 * 24 * 30));
         let resp = client
             .create_coupon(&CreateCoupon {
@@ -249,5 +250,52 @@ mod tests {
             println!("Coupon: {:?}", res);
             client.delete_coupon(res.unwrap().id).await.unwrap();
         }
+    }
+
+    #[tokio::test]
+    async fn test_existing_coupon() {
+        env_logger::init();
+        let client = WooHttpClient::new(
+            std::env::var("WOO_CONSUMER_KEY").unwrap().as_str(),
+            std::env::var("WOO_CONSUMER_SECRET").unwrap().as_str(),
+            std::env::var("WOO_BASE_URL").unwrap().as_str(),
+        );
+
+       /*  let coupons = client.get_coupons(1, 10).await;
+        println!("Coupons: {:?}", coupons);
+        sleep(Duration::from_secs(5)).await;
+        println!("End");
+        return; 
+        let coupons: Vec<Coupon> = coupons.unwrap();
+        println!("Coupons: {:?}", coupons); 
+
+        for item in coupons {
+            //let mut item: UpdateCoupon = item.into();
+            //item.description = format!("{}-updated", item.description);
+            println!("Coupon: {:?}", item);
+            //client.update_coupon(&item).await.unwrap();
+            //let res: Option<Coupon> = client.get_coupon(item.id).await.unwrap();
+            //println!("Coupon: {:?}", res);
+            //client.delete_coupon(res.unwrap().id).await.unwrap();
+        }*/
+
+        let now = DateTimeAsMicroseconds::now().add(Duration::from_secs(60 * 60 * 24 * 30));
+        let resp = client
+            .create_coupon(&CreateCoupon {
+                amount: "10.0".to_string(),
+                code: "top1".to_string(),
+                description: "test1".to_string(),
+                discount_type: crate::DiscountType::Percent,
+                date_expires_gmt: Some(now.to_rfc3339()),
+                individual_use: false,
+                //Ensure it exists!
+                product_ids: vec![2636],
+                usage_limit: None,
+                usage_limit_per_user: None,
+                limit_usage_to_x_items: None,
+            })
+            .await;
+
+        println!("Coupon: {:?}", resp);
     }
 }

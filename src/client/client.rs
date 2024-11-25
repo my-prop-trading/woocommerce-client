@@ -51,9 +51,11 @@ impl WooHttpClient {
         let mut headers = header::HeaderMap::new();
         headers.insert(header::CONTENT_TYPE, "application/json".parse().unwrap());
         headers.insert("Authorization", auth_header.parse().unwrap());
-
+       
         let client = reqwest::Client::builder()
             .default_headers(headers)
+            //TODO: REMOVE
+            //.danger_accept_invalid_certs(true)
             .build()
             .unwrap();
 
@@ -99,7 +101,8 @@ impl WooHttpClient {
                 }
             }
 
-            let parsed_data: Result<ErrorResponse, serde_json::Error> = serde_json::from_str(&err_detail_message);
+            let parsed_data: Result<ErrorResponse, serde_json::Error> =
+                serde_json::from_str(&err_detail_message);
             // Return a generic error or customize it based on the status code
             return match parsed_data {
                 Ok(res) => ResponseStatusCheck::Err(Err(WooCommerceHttpError::ErrorResponse(res))),
@@ -113,7 +116,6 @@ impl WooHttpClient {
 
 impl From<reqwest::Error> for WooCommerceHttpError {
     fn from(err: reqwest::Error) -> Self {
-
         if let Ok(is_debug) = env::var("DEBUG") {
             if is_debug == "1" {
                 LOGGER.write_error(
@@ -125,10 +127,21 @@ impl From<reqwest::Error> for WooCommerceHttpError {
         }
 
         let message = format!("ReqwestError: {}", err);
+
+        
+        let status = err.status();
+
+        let status_code = match status {
+            Some(status) => status.as_u16(),
+            None => 0,
+        };
+
         let error_response = ErrorResponse {
             code: "reqwest_error".to_string(),
             message,
-            data: ErrorData { status: err.status().unwrap().as_u16() as i32},
+            data: ErrorData {
+                status: status_code as i32,
+            },
         };
         WooCommerceHttpError::ErrorResponse(error_response)
     }
