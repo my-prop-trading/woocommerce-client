@@ -9,7 +9,7 @@ edition = "2021"
 default = []
 
 [dependencies]
-service-sdk = { tag = "0.2.6", git = "https://github.com/MyJetTools/service-sdk.git", features = [
+service-sdk = { tag = "0.4.1", git = "https://github.com/MyJetTools/service-sdk.git", features = [
     "macros",
 ] }
 

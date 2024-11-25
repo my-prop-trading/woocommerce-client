@@ -54,7 +54,7 @@ impl OrderClient for WooHttpClient {
             Ok(res) => {
                 if self.debug {
                     LOGGER.write_info(
-                        "WooHttpClient::create_order",
+                        "WooHttpClient::update_order",
                         format!("Response: {:?}", res),
                         LogEventCtx::new(),
                     );
@@ -72,7 +72,7 @@ impl OrderClient for WooHttpClient {
             Err(e) => {
                 if self.debug {
                     LOGGER.write_error(
-                        "WooHttpClient::create_order",
+                        "WooHttpClient::update_order",
                         format!("Error: {:?}", e),
                         LogEventCtx::new(),
                     );
@@ -89,7 +89,7 @@ impl OrderClient for WooHttpClient {
             Ok(res) => {
                 if self.debug {
                     LOGGER.write_info(
-                        "WooHttpClient::create_order",
+                        "WooHttpClient::get_order",
                         format!("Response: {:?}", res),
                         LogEventCtx::new(),
                     );
@@ -106,7 +106,7 @@ impl OrderClient for WooHttpClient {
             Err(e) => {
                 if self.debug {
                     LOGGER.write_error(
-                        "WooHttpClient::create_order",
+                        "WooHttpClient::get_order",
                         format!("Error: {:?}", e),
                         LogEventCtx::new(),
                     );
