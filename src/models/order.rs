@@ -54,7 +54,9 @@ pub struct Order {
     pub tax_lines: Vec<TaxLine>,
     pub shipping_lines: Vec<ShippingLine>,
     pub fee_lines: Vec<FeeLine>,
-    pub coupon_lines: Vec<CouponLine>,
+    //serde do not serialize None
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub coupon_lines: Option<Vec<CouponLine>>,
     pub refunds: Vec<Refund>,
     pub payment_url: String,
     pub is_editable: bool,
