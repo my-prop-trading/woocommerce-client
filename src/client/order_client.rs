@@ -1,6 +1,5 @@
 use service_sdk::my_logger::{LogEventCtx, LOGGER};
-
-use crate::{CreateOrder, Order, WooCommerceHttpError, WooHttpClient, OrderStatus};
+use crate::{CreateOrder, Order, WooCommerceHttpError, WooHttpClient};
 
 #[allow(async_fn_in_trait)]
 pub trait OrderClient {
