@@ -112,6 +112,12 @@ pub struct LineItem {
 pub struct CreateLineItem {
     pub product_id: i32,
     pub quantity: i32,
+    /// Line total (after discounts).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total: Option<String>,
+    /// Line subtotal (before discounts).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subtotal: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -169,12 +175,14 @@ pub struct CouponLine {
     pub discount: String,
     pub discount_tax: String,
     pub discount_type: String,
-    pub nominal_amount: f64,                    
+    pub nominal_amount: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CouponLineCreate {
     pub code: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exclude_product_ids: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -213,5 +221,5 @@ pub enum OrderStatus {
     #[serde(rename = "trash")]
     Trash,
     #[serde(rename = "checkout-draft")]
-    CheckoutDraft
+    CheckoutDraft,
 }

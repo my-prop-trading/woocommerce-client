@@ -167,6 +167,8 @@ mod tests {
                     //product_id: 60,
                     product_id: 1915,
                     quantity: 1,
+                    total: None,
+                    subtotal: None,
                 }],
                 customer_id: 0,
                 coupon_lines: vec![],
